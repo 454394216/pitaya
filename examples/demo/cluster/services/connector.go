@@ -31,6 +31,18 @@ type Response struct {
 	Msg  string
 }
 
+type ReqLogin struct {
+	Account string `json:"account"`
+}
+
+type RspLogin struct {
+	Account  string `json:"account"`
+	Pid      uint64 `json:"pid"`
+	Name     string `json:"name"`
+	Sex      int32  `json:"sex"`
+	RoomCard int64  `json:"room_card"`
+}
+
 func reply(code int32, msg string) (*Response, error) {
 	res := &Response{
 		Code: code,
@@ -56,6 +68,16 @@ func (c *Connector) SetSessionData(ctx context.Context, data *SessionData) (*Res
 		return nil, pitaya.Error(err, "CN-000", map[string]string{"failed": "set data"})
 	}
 	return reply(200, "success")
+}
+
+func (c *Connector) Login(ctx context.Context, data *ReqLogin) (*RspLogin, error) {
+	return &RspLogin{
+		Account:  data.Account,
+		Pid:      111,
+		Name:     "zhangyi",
+		Sex:      0,
+		RoomCard: 0,
+	}, nil
 }
 
 // NotifySessionData sets the session data
