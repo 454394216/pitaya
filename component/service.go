@@ -62,7 +62,7 @@ type (
 func NewService(comp Component, opts []Option) *Service {
 	s := &Service{
 		Type:     reflect.TypeOf(comp),
-		Receiver: reflect.ValueOf(comp),
+		Receiver: reflect.ValueOf(comp), // self
 	}
 
 	// apply options
@@ -70,6 +70,7 @@ func NewService(comp Component, opts []Option) *Service {
 		opt := opts[i]
 		opt(&s.Options)
 	}
+	// 如果玩家传入了name的参数就使用，否则使用component类型的名字
 	if name := s.Options.name; name != "" {
 		s.Name = name
 	} else {
@@ -98,11 +99,13 @@ func (s *Service) ExtractHandler() error {
 	}
 
 	// Install the methods
+	// s.Type为非指针
 	s.Handlers = suitableHandlerMethods(s.Type, s.Options.nameFunc)
 
 	if len(s.Handlers) == 0 {
 		str := ""
 		// To help the user, see if a pointer receiver would work.
+		// 尝试s.Type 为指针的情况
 		method := suitableHandlerMethods(reflect.PtrTo(s.Type), s.Options.nameFunc)
 		if len(method) != 0 {
 			str = "type " + s.Name + " has no exported methods of handler type (hint: pass a pointer to value of that type)"

@@ -90,18 +90,22 @@ func isHandlerMethod(method reflect.Method) bool {
 	}
 
 	// Method needs two or three ins: receiver, context.Context and optional []byte or pointer.
-	if mt.NumIn() != 2 && mt.NumIn() != 3 {
+	if mt.NumIn() != 2 && mt.NumIn() != 3 { // 一个context参数和一个消息数据（指针类型或者[]byte类型)
 		return false
 	}
 
+	// 第二个参数必须是context
 	if t1 := mt.In(1); !t1.Implements(typeOfContext) {
 		return false
 	}
 
+	// 第三个参数可以为指针或者二进制流
 	if mt.NumIn() == 3 && mt.In(2).Kind() != reflect.Ptr && mt.In(2) != typeOfBytes {
 		return false
 	}
 
+	// 输出参数要么没有，要么是两个
+	// 第一个可以是返回的二进制流或者指针，第二个参数必须是error
 	// Method needs either no out or two outs: interface{}(or []byte), error
 	if mt.NumOut() != 0 && mt.NumOut() != 2 {
 		return false
@@ -145,6 +149,7 @@ func suitableHandlerMethods(typ reflect.Type, nameFunc func(string) string) map[
 		mn := method.Name
 		if isHandlerMethod(method) {
 			raw := false
+			// 消息为原始的二进制，表示为原始类型，不需要解包
 			if mt.NumIn() == 3 && mt.In(2) == typeOfBytes {
 				raw = true
 			}
@@ -153,6 +158,7 @@ func suitableHandlerMethods(typ reflect.Type, nameFunc func(string) string) map[
 				mn = nameFunc(mn)
 			}
 			var msgType message.Type
+			// 没有返回值 表示是一个通知不需要返回，否则是一个请求需要返回
 			if mt.NumOut() == 0 {
 				msgType = message.Notify
 			} else {
@@ -164,6 +170,7 @@ func suitableHandlerMethods(typ reflect.Type, nameFunc func(string) string) map[
 				MessageType: msgType,
 			}
 			if mt.NumIn() == 3 {
+				// 消息类型，用来解包
 				handler.Type = mt.In(2)
 			}
 			methods[mn] = handler
