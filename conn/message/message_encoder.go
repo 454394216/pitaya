@@ -131,11 +131,12 @@ func (me *MessagesEncoder) Decode(data []byte) (*Message, error) {
 // Decode unmarshal the bytes slice to a message
 // See ref: https://github.com/topfreegames/pitaya/v2/blob/master/docs/communication_protocol.md
 func Decode(data []byte) (*Message, error) {
-	if len(data) < msgHeadLength {
+	if len(data) < msgHeadLength { // 2字节的包头长度
 		return nil, ErrInvalidMessage
 	}
 	m := New()
-	flag := data[0]
+	flag := data[0] // 第一个字节是flag
+	// flag的第一个比特表示路由是否压缩，接着3个比特表示消息的类型, 第5个比特表示协议内容是否被压缩, 第六个比特表示是否有错误
 	offset := 1
 	m.Type = Type((flag >> 1) & msgTypeMask)
 
@@ -149,9 +150,9 @@ func Decode(data []byte) (*Message, error) {
 		// WARNING: must can be stored in 64 bits integer
 		// variant length encode
 		for i := offset; i < len(data); i++ {
-			b := data[i]
-			id += uint(b&0x7F) << uint(7*(i-offset))
-			if b < 128 {
+			b := data[i]                             // 第8个比特表示是否还有id的数据, 剩下的7个比特表示id的具体数字，采用的是小端模式，也就是低字节在低位，搞自己在高位
+			id += uint(b&0x7F) << uint(7*(i-offset)) // 按照小端模式恢复
+			if b < 128 {                             // b<128也就是第八个比特为0，表示id没有数据了
 				offset = i + 1
 				break
 			}
@@ -163,8 +164,9 @@ func Decode(data []byte) (*Message, error) {
 
 	if routable(m.Type) {
 		if flag&msgRouteCompressMask == 1 {
+			// 路由被压缩
 			m.compressed = true
-			code := binary.BigEndian.Uint16(data[offset:(offset + 2)])
+			code := binary.BigEndian.Uint16(data[offset:(offset + 2)]) // 压缩码
 			routesCodesMutex.RLock()
 			route, ok := codes[code]
 			routesCodesMutex.RUnlock()
@@ -175,7 +177,7 @@ func Decode(data []byte) (*Message, error) {
 			offset += 2
 		} else {
 			m.compressed = false
-			rl := data[offset]
+			rl := data[offset] // 第一个字节就是路由长度, 也就是路由的长度最多为255个字节
 			offset++
 			m.Route = string(data[offset:(offset + int(rl))])
 			offset += int(rl)
@@ -185,6 +187,7 @@ func Decode(data []byte) (*Message, error) {
 	m.Data = data[offset:]
 	var err error
 	if flag&gzipMask == gzipMask {
+		// 是否压缩
 		m.Data, err = compression.InflateData(m.Data)
 		if err != nil {
 			return nil, err

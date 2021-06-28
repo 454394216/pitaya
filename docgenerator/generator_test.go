@@ -83,6 +83,7 @@ func TestHandlersDoc(t *testing.T) {
 	handlerServices := map[string]*component.Service{}
 	s := component.NewService(&MyComp{}, []component.Option{})
 	err := s.ExtractHandler()
+	t.Logf("%#v", s.Handlers)
 	assert.NoError(t, err)
 	handlerServices[s.Name] = s
 

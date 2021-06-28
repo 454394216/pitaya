@@ -56,7 +56,7 @@ func (h *HandlerPool) ProcessHandlerMessage(
 	ctx = context.WithValue(ctx, constants.SessionCtxKey, session)
 	ctx = util.CtxWithDefaultLogger(ctx, rt.String(), session.UID())
 
-	handler, err := h.getHandler(rt)
+	handler, err := h.getHandler(rt) // 找到对应的handler
 	if err != nil {
 		return nil, e.NewError(err, e.ErrNotFoundCode)
 	}
@@ -76,12 +76,12 @@ func (h *HandlerPool) ProcessHandlerMessage(
 
 	// First unmarshal the handler arg that will be passed to
 	// both handler and pipeline functions
-	arg, err := unmarshalHandlerArg(handler, serializer, data)
+	arg, err := unmarshalHandlerArg(handler, serializer, data) // 反序列化协议内容
 	if err != nil {
 		return nil, e.NewError(err, e.ErrBadRequestCode)
 	}
 
-	if arg, err = handlerHooks.BeforeHandler.ExecuteBeforePipeline(ctx, arg); err != nil {
+	if arg, err = handlerHooks.BeforeHandler.ExecuteBeforePipeline(ctx, arg); err != nil { //
 		return nil, err
 	}
 

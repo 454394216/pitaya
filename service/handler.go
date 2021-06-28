@@ -187,7 +187,7 @@ func (h *HandlerService) Handle(conn acceptor.PlayerConn) {
 			return
 		}
 
-		packets, err := h.decoder.Decode(msg)
+		packets, err := h.decoder.Decode(msg) // 解析出packet
 		if err != nil {
 			logger.Log.Errorf("Failed to decode message: %s", err.Error())
 			return

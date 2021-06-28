@@ -1,17 +1,21 @@
 package codec
 
-import "github.com/topfreegames/pitaya/v2/conn/packet"
+import (
+	"github.com/topfreegames/pitaya/v2/conn/packet"
+)
 
 // ParseHeader parses a packet header and returns its dataLen and packetType or an error
 func ParseHeader(header []byte) (int, packet.Type, error) {
 	if len(header) != HeadLength {
 		return 0, 0x00, packet.ErrInvalidPomeloHeader
 	}
+	// 第一个字节表示类型
 	typ := header[0]
 	if typ < packet.Handshake || typ > packet.Kick {
 		return 0, 0x00, packet.ErrWrongPomeloPacketType
 	}
 
+	// 后面三个字节表示长度
 	size := BytesToInt(header[1:])
 
 	if size > MaxPacketSize {
@@ -24,6 +28,7 @@ func ParseHeader(header []byte) (int, packet.Type, error) {
 // BytesToInt decode packet data length byte to int(Big end)
 func BytesToInt(b []byte) int {
 	result := 0
+	// 大端模式，高位放在低字节
 	for _, v := range b {
 		result = result<<8 + int(v)
 	}

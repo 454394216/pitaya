@@ -47,6 +47,7 @@ type tcpPlayerConn struct {
 
 // GetNextMessage reads the next message available in the stream
 func (t *tcpPlayerConn) GetNextMessage() (b []byte, err error) {
+	// 读取4字节固定头部
 	header, err := ioutil.ReadAll(io.LimitReader(t.Conn, codec.HeadLength))
 	if err != nil {
 		return nil, err
@@ -59,7 +60,7 @@ func (t *tcpPlayerConn) GetNextMessage() (b []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	msgData, err := ioutil.ReadAll(io.LimitReader(t.Conn, int64(msgSize)))
+	msgData, err := ioutil.ReadAll(io.LimitReader(t.Conn, int64(msgSize))) // 包体
 	if err != nil {
 		return nil, err
 	}
