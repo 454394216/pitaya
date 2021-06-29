@@ -272,7 +272,7 @@ func (h *HandlerService) processMessage(a agent.Agent, msg *message.Message) {
 		"request.id": requestID.String(),
 	}
 	ctx = tracing.StartSpan(ctx, msg.Route, tags)
-	ctx = context.WithValue(ctx, constants.SessionCtxKey, a.GetSession())
+	// ctx = context.WithValue(ctx, constants.SessionCtxKey, a.GetSession()) // 这儿感觉是多余的 后面还回去调用此方法
 
 	r, err := route.Decode(msg.Route)
 	if err != nil {

@@ -344,7 +344,7 @@ func (s *sessionImpl) SetData(data map[string]interface{}) error {
 	defer s.Unlock()
 
 	s.data = data
-	return s.updateEncodedData()
+	return s.updateEncodedData() // 感觉这儿没有必要去每次都updateEncode，因为EncodedData用的很少，可以考虑在取得时候直接encode就行了
 }
 
 // GetDataEncoded returns the session data as an encoded value
@@ -404,7 +404,7 @@ func (s *sessionImpl) Bind(ctx context.Context, uid string) error {
 	} else {
 		// If frontentID is set this means it is a remote call and the current server
 		// is not the frontend server that received the user request
-		err := s.bindInFront(ctx)
+		err := s.bindInFront(ctx) // 通知front bind消息
 		if err != nil {
 			logger.Log.Error("error while trying to push session to front: ", err)
 			s.uid = ""

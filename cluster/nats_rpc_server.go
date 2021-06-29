@@ -172,7 +172,7 @@ func (ns *NatsRPCServer) subscribeToUserKickChannel(uid string, svType string) (
 }
 
 func (ns *NatsRPCServer) subscribeToUserMessages(uid string, svType string) (*nats.Subscription, error) {
-	sub, err := ns.conn.Subscribe(GetUserMessagesTopic(uid, svType), func(msg *nats.Msg) {
+	sub, err := ns.conn.Subscribe(GetUserMessagesTopic(uid, svType), func(msg *nats.Msg) { // 这儿为什么需要用uid去做topic?, 直接用svrType不就行了?
 		push := &protos.Push{}
 		err := proto.Unmarshal(msg.Data, push)
 		if err != nil {
